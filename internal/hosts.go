@@ -1,20 +1,20 @@
-package main
+package vmwexporter
 
 import (
-	"github.com/ProdriveTechnologies/vmware_exporter/pkg/util"
+	"github.com/benridley/vmware_exporter/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
 var (
-	vmwareHostCpuUsedHzDesc = util.NewVmwareDesc(
+	vmwareHostCPUUsedHzDesc = util.NewVmwareDesc(
 		"host",
 		"cpu_used_hertz",
 		"The current CPU used of the ESXi host in Hertz.",
 		"host",
 		"datacenter")
-	vmwareHostCpuAvailableHzDesc = util.NewVmwareDesc(
+	vmwareHostCPUAvailableHzDesc = util.NewVmwareDesc(
 		"host",
 		"cpu_available_hertz",
 		"The available CPU power of the ESXi host in Hertz.",
@@ -62,9 +62,9 @@ func (e *vmwareExporter) retrieveHosts(ch chan<- prometheus.Metric) error {
 				return err
 			}
 			cpuHertz := float64(int64(host.Summary.QuickStats.OverallCpuUsage) * 1000000)
-			ch <- prometheus.MustNewConstMetric(vmwareHostCpuUsedHzDesc, prometheus.GaugeValue, cpuHertz, host.Summary.Config.Name, datacenter.Name())
+			ch <- prometheus.MustNewConstMetric(vmwareHostCPUUsedHzDesc, prometheus.GaugeValue, cpuHertz, host.Summary.Config.Name, datacenter.Name())
 			cpuTotal := float64(int64(host.Summary.Hardware.CpuMhz) * int64(host.Summary.Hardware.NumCpuCores) * 1000000)
-			ch <- prometheus.MustNewConstMetric(vmwareHostCpuAvailableHzDesc, prometheus.GaugeValue, cpuTotal, host.Summary.Config.Name, datacenter.Name())
+			ch <- prometheus.MustNewConstMetric(vmwareHostCPUAvailableHzDesc, prometheus.GaugeValue, cpuTotal, host.Summary.Config.Name, datacenter.Name())
 			memoryUsed := float64(int64(host.Summary.QuickStats.OverallMemoryUsage) * 1000000000)
 			ch <- prometheus.MustNewConstMetric(vmwareHostMemoryUsedBytesDesc, prometheus.GaugeValue, memoryUsed, host.Summary.Config.Name, datacenter.Name())
 			memoryTotal := float64(host.Summary.Hardware.MemorySize)
@@ -77,8 +77,8 @@ func (e *vmwareExporter) retrieveHosts(ch chan<- prometheus.Metric) error {
 }
 
 func describeHosts(ch chan<- *prometheus.Desc) {
-	ch <- vmwareHostCpuUsedHzDesc
-	ch <- vmwareHostCpuAvailableHzDesc
+	ch <- vmwareHostCPUUsedHzDesc
+	ch <- vmwareHostCPUAvailableHzDesc
 	ch <- vmwareHostMemoryUsedBytesDesc
 	ch <- vmwareHostMemoryTotalBytesDesc
 	ch <- vmwareHostUptimeSecondsDesc

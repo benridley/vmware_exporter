@@ -1,0 +1,3 @@
+vsphere_url: 'https://vsphere.mydomain.com'
+vsphere_username: 'testusername'
+vsphere_password: 'testpassword'

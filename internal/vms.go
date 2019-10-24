@@ -1,7 +1,7 @@
-package main
+package vmwexporter
 
 import (
-	"github.com/ProdriveTechnologies/vmware_exporter/pkg/util"
+	"github.com/benridley/vmware_exporter/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vmware/govmomi/view"
 	"github.com/vmware/govmomi/vim25/mo"

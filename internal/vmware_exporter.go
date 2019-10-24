@@ -1,13 +1,10 @@
-package main
+package vmwexporter
 
 import (
 	"context"
-	"flag"
-	"net/http"
 	"net/url"
-	"os"
 
-	"github.com/ProdriveTechnologies/vmware_exporter/pkg/util"
+	util "github.com/benridley/vmware_exporter/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"github.com/vmware/govmomi"
@@ -18,13 +15,15 @@ type vmwareExporter struct {
 	Client  *govmomi.Client
 }
 
-func NewVmwareExporter(vcenterUrl string) (*vmwareExporter, error) {
-	parsedUrl, err := url.Parse(vcenterUrl)
+func NewVmwareExporter(config *util.VSphereConfigStruct) (*vmwareExporter, error) {
+	parsedURL, err := url.Parse(config.VSphereURL)
+	parsedURL.User = url.UserPassword(config.VSphereUsername, config.VSpherePassword)
+
 	if err != nil {
 		return &vmwareExporter{}, err
 	}
 	ctx := context.Background()
-	client, err := govmomi.NewClient(ctx, parsedUrl, true)
+	client, err := govmomi.NewClient(ctx, parsedURL, true)
 	if err != nil {
 		return &vmwareExporter{}, err
 	}
@@ -70,34 +69,4 @@ func (e *vmwareExporter) Describe(ch chan<- *prometheus.Desc) {
 	describeDatastores(ch)
 	describeHosts(ch)
 	describeVms(ch)
-}
-
-func main() {
-	var (
-		listenAddress = flag.String("web.listen-address", ":9536", "Address to listen on for web interface and telemetry.")
-		metricsPath   = flag.String("web.telemetry-path", "/metrics", "Path under which to expose metrics.")
-	)
-	flag.Parse()
-
-	vcenterUrl := os.Getenv("VSPHERE_URL")
-	log.Infof("Connecting to vCenter")
-	e, err := NewVmwareExporter(vcenterUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	prometheus.MustRegister(e)
-
-	http.Handle(*metricsPath, prometheus.Handler())
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`
-			<html>
-			<head><title>VMWare Exporter</title></head>
-			<body>
-			<h1>VMWare Exporter</h1>
-			<p><a href='` + *metricsPath + `'>Metrics</a></p>
-			</body>
-			</html>`))
-	})
-	log.Info("Listening on address:port => ", *listenAddress)
-	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }
