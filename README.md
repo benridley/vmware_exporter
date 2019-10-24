@@ -6,15 +6,19 @@ library](https://github.com/vmware/govmomi/).
 
 ## Building this exporter
 
-The exporter can be built using Bazel:
+The exporter uses Go modules for dependencies:
 
-    bazel build //...
+    go build ./...
 
 ## Using this exporter
 
-The exporter retrieves credentials and URL of vSphere from the `VSPHERE_URL` environment.
+The exporter retrieves credentials and URL of vSphere from config.yml in its directory.
 
-Once that variable set, the following command will start the exporter, causing
-it to listen on TCP port 9536:
+```yaml
+vsphere_url: https://my.vsphere.domain/sdk
+vsphere_username: administrator
+vsphere_password: T*(UJ_*UC_Dx8_JDjdmughmp9urhmc-t78mMJ*(_FEA
+```
+Run the binary to listen on TCP port 9536:
 
     ./vmware_exporter
