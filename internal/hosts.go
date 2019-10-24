@@ -38,6 +38,12 @@ var (
 		"The uptime of the host in seconds.",
 		"host",
 		"datacenter")
+	vmwareHostOverallStatusDesc = util.NewVmwareDesc(
+		"host",
+		"overall_status",
+		"The overall status of the host. 0=gray(unknown),1=green(ok),2=yellow(warning),3=red(error)",
+		"host",
+		"datacenter")
 )
 
 func (e *vmwareExporter) retrieveHosts(ch chan<- prometheus.Metric) error {
@@ -70,6 +76,7 @@ func (e *vmwareExporter) retrieveHosts(ch chan<- prometheus.Metric) error {
 			memoryTotal := float64(host.Summary.Hardware.MemorySize)
 			ch <- prometheus.MustNewConstMetric(vmwareHostMemoryTotalBytesDesc, prometheus.GaugeValue, memoryTotal, host.Summary.Config.Name, datacenter.Name())
 			ch <- prometheus.MustNewConstMetric(vmwareHostUptimeSecondsDesc, prometheus.GaugeValue, float64(host.Summary.QuickStats.Uptime), host.Summary.Config.Name, datacenter.Name())
+			ch <- prometheus.MustNewConstMetric(vmwareHostOverallStatusDesc, prometheus.GaugeValue, statusToFloat(string(host.Summary.OverallStatus)), host.Summary.Config.Name, datacenter.Name())
 		}
 	}
 
@@ -82,4 +89,16 @@ func describeHosts(ch chan<- *prometheus.Desc) {
 	ch <- vmwareHostMemoryUsedBytesDesc
 	ch <- vmwareHostMemoryTotalBytesDesc
 	ch <- vmwareHostUptimeSecondsDesc
+}
+
+func statusToFloat(status string) float64 {
+	switch status {
+	case "green":
+		return 1
+	case "yellow":
+		return 2
+	case "red":
+		return 3
+	}
+	return 0
 }
